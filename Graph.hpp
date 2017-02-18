@@ -1,3 +1,5 @@
+#include <vector>
+
 class Graph {
 
 private:
@@ -9,6 +11,8 @@ private:
     void checkUndirectedGraph();
 public:
     Graph(std::string configFile);
+    std::vector<int> getConnectedNodes(int node);
     bool isEdge(int i, int j);
+    int getVertexCount();
     ~Graph(); 
 };

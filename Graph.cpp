@@ -1,6 +1,5 @@
 #include "Graph.hpp"
 #include <fstream>
-
 /***
     Graph representation using an adjacency matrix
     suppose you have 3 nodes then we can represent edges between them 
@@ -15,10 +14,12 @@ Graph::Graph(std::string configFile){
 
 
 void Graph::addEdge(int i, int j){
-    std::cout << "vertex count:" << vertexCount <<std::endl;
     if (i >= 0 && i < vertexCount && j >= 0 && j < vertexCount) {
         adjacencyMatrix[i][j] = true;
     }
+}
+int Graph::getVertexCount(){
+    return vertexCount;
 }
 
 //undirected graph, we remove the edge from both sides;
@@ -64,12 +65,12 @@ void Graph::readConfigFile(std::string fileName){
             adjacencyMatrix[i][j] = false;
             file >> tmp;
             
-            std::cout << "tmp:" << tmp << std::endl;
             if(tmp != 0) addEdge(i,j);
         }
     }
     checkUndirectedGraph();
 }
+
 void Graph::checkUndirectedGraph(){
     for (int i=0;i<vertexCount;i++){
         for(int j=0;j<vertexCount;j++){
@@ -81,4 +82,15 @@ void Graph::checkUndirectedGraph(){
         }
     }
 }
+
+
+std::vector<int> Graph::getConnectedNodes(int node){
+    std::vector<int> connectedNodes;
+    for(int i = 0; i < vertexCount; i++){
+        if(i==node) continue;
+        if(adjacencyMatrix[node][i]==true) connectedNodes.push_back(i);
+    }
+    return connectedNodes;
+}
+
 

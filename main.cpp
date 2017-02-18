@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <mpi.h>
+#include <mpi.h>
 #include "main.hpp"
 #include "Graph.cpp"
 using namespace std;
@@ -12,22 +12,31 @@ bool holdFork = false;
 bool holdRequestTokenFork = false;
 bool forkIsDirty = false;
 
+int id;
+int totalNodes;
+std::vector<int> reachableNodes;
+
 int main(int argc, char ** argv)
 {
-    int mynode, totalnodes;
-    /*MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &totalnodes);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mynode);
-    cout << "Hello world from process " << mynode;
-    cout << " of " << totalnodes << endl;*/
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &totalNodes);
+    MPI_Comm_rank(MPI_COMM_WORLD, &id);
+    //cout << "Hello world from process " << mynode;
+    //cout << " of " << totalnodes << endl;
     //rules(mynode);
     //Graph* graph= new Graph("h.conf");
     Graph graph("h.conf");
-    cout << "0,0" << graph.isEdge(0,0)<<endl;
-    cout << "0,1" << graph.isEdge(0,1)<<endl;
-    //MPI_Finalize();
+    if(totalNodes != graph.getVertexCount()){
+        cout << "the number of processes should match the number of philosophers" <<endl;
+        cout << "the program will now close";
+        exit(0);
+    }
+    reachableNodes = graph.getConnectedNodes(id);
+    for (int i=0;i<reachableNodes.size();i++){
+        cout<< "element"<< id<< "has edges to " << reachableNodes[i] <<endl;
+    }
+    MPI_Finalize();
 }
-
 void rules(int processNumber){
 	while(1){
 	    if(processNumber == 1){
