@@ -31,7 +31,6 @@ vector<bool> holdForks;
 vector<bool> dirtyForks;
 vector<bool> holdRequestTokenForks;
 
-
 int main(int argc, char ** argv)
 {
     MPI_Init(&argc,&argv);
@@ -46,28 +45,31 @@ int main(int argc, char ** argv)
     }
     reachableNodes = graph.getConnectedNodes(id);
     initializeForksAndRequests();
-    rules(1);
+    rules();
     MPI_Finalize();
 }
-void rules(int processNumber){
-	outer:while(1){
+void rules(){
+	while(1){
         //random hungry
 
-        int iSecret, iGuess;
+        int random;
+        //making every seed unique from a process to another using id
         srand (time(NULL) + id*2);
-        iSecret = rand() % 10 + 1;
-        if(iSecret < 2) {
-            currentState = hungry;
-            cout << "philosopher at node " << id << " hungry " << endl;
+        random = rand() % 10 + 1;
+        usleep(random * 200); 
+        currentState = hungry;
+        cout << "philosopher at node " << id << " hungry " << endl;
+        
+        if(rule1() || rule2()){
+            cout << "process: "<< id << "satisfies rule 1 or rule 2" <<endl;
+            continue;
         }
-
-        for (int i=0; i < reachableNodes.size(); i++){
-            if(rule1(i) || rule2(i)){
-                goto outer;
-            }
-            rule3(i);
-            rule4(i);		
+        if(rule3()) {
+            cout<< "process: "<< id << "satisfies rule 3" <<endl;
+           // continue;
+            
         }
+        rule4();		
         //if i am in this state
         bool allForksClean = true;
         for(int i=0; i < reachableNodes.size(); i++){
@@ -77,11 +79,14 @@ void rules(int processNumber){
         if(allForksClean){
             currentState = eating;
             cout << "philosopher at node " << id << " is eating" << endl;
-            sleep(2);
+            sleep(1);
             for(int i=0; i < dirtyForks.size(); i++){
                 dirtyForks[i] = true;
             }
             currentState = thinking;
+            sleep(1);
+        }else {
+            cout<< "error this should never reach this state"<<endl;
         }
 
 	}
@@ -93,10 +98,13 @@ void initializeForksAndRequests(){
     dirtyForks.reserve(size);
     holdForks.reserve(size);
     holdRequestTokenForks.reserve(size);
-
     for(int i =0 ;i< reachableNodes.size();i++){
         dirtyForks[i] = true;
-        if(id > reachableNodes[i]) holdForks[i] = true;
+        if(id > reachableNodes[i]){ 
+            holdForks[i] = true;
+            holdRequestTokenForks[i] = false;
+
+        }
         else { 
             holdForks[i] = false;
             holdRequestTokenForks[i] = true;
@@ -110,44 +118,64 @@ void initializeForksAndRequests(){
 *   i represent the index of the fork , and represent the index of the philosopher
 *
 **/
-bool rule1(int i){
-    if (currentState == hungry && holdRequestTokenForks[i] && !holdForks[i]){
-        //send request token to the philosopher with whom this is shared
-        MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i],REQUEST_TOKEN_TAG, MPI_COMM_WORLD);
-        cout << "sending request token to x";
-        holdRequestTokenForks[i] = false;
-        return true;
+bool rule1(){
+    bool sendHappened = false;
+    if (currentState == hungry){
+        for(int i=0; i<reachableNodes.size(); i++){
+            if(holdRequestTokenForks[i] && !holdForks[i]){
+                //send request token to the philosopher with whom this is shared
+                MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i],REQUEST_TOKEN_TAG, MPI_COMM_WORLD);
+                cout << "sending request token to process: " << reachableNodes[i] <<endl;
+                holdRequestTokenForks[i] = false;
+                sendHappened = true;
+            }
+        }
     }
-    return false;
+    return sendHappened;
 
 }
 
-bool rule2(int i){
-    if(currentState != eating && holdRequestTokenForks[i] && dirtyForks[i]){
-        //send fork f to the philosopher with whom fork f is shared
-        MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i], FORK_TAG, MPI_COMM_WORLD);
-        dirtyForks[i] = false;
-        holdForks[i] = false;
-        return true;
+bool rule2(){
+    bool sendHappened = false;
+    if(currentState != eating) {
+        for(int i=0;i<reachableNodes.size();i++){
+            if(holdRequestTokenForks[i] && dirtyForks[i]){
+                //send fork f to the philosopher with whom fork f is shared
+                MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i], FORK_TAG, MPI_COMM_WORLD);
+                dirtyForks[i] = false;
+                holdForks[i] = false;
+                sendHappened = true;
+            }
+        }
     }
-    return false;
+    return sendHappened;
 }
-void rule3(int i){
+bool rule3(){
     //waiting to receive request token from f
     //once that is received 
-    if(!holdRequestTokenForks[i]){
-        MPI_Recv(&randomNumber, 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //received request token
-        holdRequestTokenForks[i] = true;
+    bool receiveHappened = false;
+    for(int i=0; i < reachableNodes.size(); i++){ 
+        if(!holdRequestTokenForks[i]){
+            cout << "process: "<< id << "is wating in rule3"<< "on fork: "<< i  <<endl;
+            MPI_Recv(&randomNumber, 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            //received request token
+            holdRequestTokenForks[i] = true;
+            cout << "i must go to outer" << endl;
+            receiveHappened = true;
+        }
     }
+    return receiveHappened;
 }
-void rule4(int i){
+void rule4(){
     //wait to receive a fork f
-    if(!holdForks[i]){
-        MPI_Recv(&randomNumber, 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //fork received , it should be clean , every fork sent must be clean
-        holdForks[i] = true;
-        dirtyForks[i] = false;
+    cout << "process: "<< id << "is wating in rule4" <<endl;
+    for (int i=0; i < reachableNodes.size(); i++){
+        if(!holdForks[i]){
+            MPI_Recv(&randomNumber, 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            //fork received , it should be clean , every fork sent must be clean
+            holdForks[i] = true;
+            dirtyForks[i] = false;
+        }
     }
 }
 
