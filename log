@@ -1,0 +1,169 @@
+mpirun -np 3 out 
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+thinking philosopher at node: 2
+thinking philosopher at node: 2
+philosopher at node 2 is eating
+hungry philosopher at node: 0
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+thinking philosopher at node: 0
+philosopher at node 2 is thinking
+hungry philosopher at node: 2
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+thinking philosopher at node: 0
+philosopher at node 0 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is thinking
+thinking philosopher at node: 0
+thinking philosopher at node: 0
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 2 is eating
+philosopher at node 0 is eating
+philosopher at node 2 is thinking
+hungry philosopher at node: 2
+philosopher at node 0 is thinking
+thinking philosopher at node: 0
+thinking philosopher at node: 0
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+thinking philosopher at node: 0
+thinking philosopher at node: 0
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 0 is eating
+philosopher at node 2 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 2 is thinking
+thinking philosopher at node: 2
+thinking philosopher at node: 2
+philosopher at node 2 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 2 is thinking
+thinking philosopher at node: 2
+thinking philosopher at node: 2
+philosopher at node 2 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 2 is thinking
+hungry philosopher at node: 2
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 1 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 1 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 0 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+thinking philosopher at node: 1
+thinking philosopher at node: 1
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
+philosopher at node 1 is thinking
+hungry philosopher at node: 1
+philosopher at node 0 is eating
+philosopher at node 0 is thinking
+hungry philosopher at node: 0
+philosopher at node 1 is eating
