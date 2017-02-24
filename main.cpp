@@ -54,19 +54,7 @@ int main(int argc, char ** argv)
     rules();
     MPI_Finalize();
 }
-void startGettingHungry(){
-    if(currentState == hungry) return;
 
-    int random;
-    //making every seed unique from a process to another using id
-    srand (time(NULL) + id+2);
-    random = rand() % 10 + 1;
-    //cout << "random value " << random <<endl;
-
-    if(random < 5) { currentState = hungry; cout << "hungry philosopher at node: " << id << endl; }
-    else currentState = thinking;
-}
-//get hungry after 10 ms after your last meal
 void rules(){
 	while(1){
         simulateHungryCycle();
@@ -76,7 +64,6 @@ void rules(){
         }
         rule3();
         rule4();		
-<<<<<<< HEAD
         MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 }
@@ -129,26 +116,6 @@ bool canEat(){
         if(!holdForks[i]) haveAllForks = false;
     }
     return haveAllForks;
-
-=======
-        //if i am in this state
-        //bool allForksClean = true;
-        //for(int i=0; i < reachableNodes.size(); i++){
-        //    //check that all forks are clean
-        //    if(dirtyForks[i]) allForksClean = false;
-        //}
-        //if(allForksClean){
-            currentState = eating;
-            cout << "philosopher at node " << id << " is eating" << endl;
-            sleep(1);
-            for(int i=0; i < reachableNodes.size(); i++){
-                dirtyForks[i] = true;
-            }
-            currentState = thinking;
-            cout << "philosopher at node " << id << " is thinking" << endl;
-        //}
-	}
->>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
 }
 
 
@@ -219,35 +186,19 @@ bool rule2(){
 void rule3(){
     output << "process: "<< id << " is wating to receive request token" << endl;
     for(int i=0; i < reachableNodes.size(); i++){ 
-<<<<<<< HEAD
         if(!holdRequestTokenForks[i])
             MPI_Irecv(&holdRequestTokenForks[i], 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD, &request);
-=======
-        //cout << "process: "<< id << " is wating in rule3 on fork: "<< reachableNodes[i]  <<endl;
-        MPI_Irecv(&holdRequestTokenForks[i], 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD,
-        &rule3Request);
-        //received request token
-        //holdRequestTokenForks[i] = true;
-        //cout << "process: "<< id << " received token " << "from: "<< reachableNodes[i] << endl;
->>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
+
     }
 }
 void rule4(){
     output << "process: "<< id << " is wating to receive forks" <<endl;
     for (int i=0; i < reachableNodes.size(); i++){
-<<<<<<< HEAD
         if(!holdForks[i]){
             MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &request);
 
             MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &request);
         
-=======
-            MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &rule4Request);
-            MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &rule4Request);
->>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
-        //those two values are filled asynchronously
-        //holdForks[i] = true;
-        //dirtyForks[i] = false;
         }
     }
 }
