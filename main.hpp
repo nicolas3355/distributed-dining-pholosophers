@@ -7,6 +7,7 @@ void eat();
 void think();
 bool canEat();
 void getHungry();
+int getSenderIndex(int senderId);
 int getRandomNumber();
 void simulateHungryCycle();
 void initializeForksAndRequests();

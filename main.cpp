@@ -14,9 +14,6 @@ using namespace std;
 **/
 int const REQUEST_TOKEN_TAG = 1;
 int const FORK_TAG = 2;
-int const FORK_TAG_DIRTY = 3;
-int const VALUE_TRUE = 1;
-int const VALUE_FALSE = 1;
 
 int randomNumber = 1;
 
@@ -27,13 +24,19 @@ state currentState = initValue;
 int id;
 int totalNodes;
 
+//number of milliseconds, this will be multiplied a random number between 1 and 10 to decide how much
+//the task will take time
+const int waitMilli= 500;  
+
 //contains the ids of the reachable nodes
 vector<int> reachableNodes;
 
 bool* holdForks;
 bool* dirtyForks;
 bool* holdRequestTokenForks;
+
 ofstream output;
+
 MPI_Request request;
 MPI_Status status;
 
@@ -62,24 +65,38 @@ void rules(){
             output << "process: "<< id << " satisfies rule 1 or rule 2" <<endl;
             continue;
         }
-        rule3();
-        rule4();		
-        MPI_Wait(&request,MPI_STATUS_IGNORE);
+        if(currentState == eating) continue;
+
+        MPI_Recv( &randomNumber, 1 ,MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD , &status);
+        int senderIndex = getSenderIndex(status.MPI_SOURCE);
+        if(status.MPI_TAG == REQUEST_TOKEN_TAG){
+            holdRequestTokenForks[senderIndex] = true;
+        } else if (status.MPI_TAG == FORK_TAG){
+            holdForks[senderIndex] = true;
+            dirtyForks[senderIndex] = false;
+        }
+
     }
 }
-//returns random number between 1 and 10
+int getSenderIndex(int idOfSender){
+    for(int i=0;i<reachableNodes.size();i++){
+        if(idOfSender == reachableNodes[i]) return i; 
+    }
+    return -1;
+}
+//returns a random number between 1 and 10
 int getRandomNumber(){
     int random;
     //making every seed unique from a process to another using id
     srand (time(NULL) + id+2);
     random = rand() % 10 + 1;
-    //cout << "random value " << random <<endl;
     return random;
 }
 void simulateHungryCycle(){
-    //thinking
     if(currentState == initValue){
         currentState = thinking;
+        output << "philosopher at node " << id << " is thinking" << endl;
+
     } else if(currentState == thinking){
         getHungry();
     } else if (currentState == eating){
@@ -91,7 +108,7 @@ void simulateHungryCycle(){
 void think(){
     currentState = thinking;
     output << "philosopher at node " << id << " is thinking" << endl;
-    usleep(getRandomNumber()*100);
+    usleep(getRandomNumber()*waitMilli);
     
 }
 void getHungry(){
@@ -102,7 +119,7 @@ void eat(){
     if (canEat()){
         currentState = eating;
         output << "philosopher at node " << id << " is eating" << endl;
-        usleep(getRandomNumber()*100);
+        usleep(getRandomNumber()*waitMilli);
         for(int i=0; i < reachableNodes.size(); i++){
             dirtyForks[i] = true;
         }
@@ -144,17 +161,13 @@ void initializeForksAndRequests(){
 }
 
 
-/**
-*   i represent the index of the fork , and represent the index of the philosopher
-*
-**/
 bool rule1(){
     bool sendHappened = false;
     if (currentState == hungry){
         for(int i=0; i<reachableNodes.size(); i++){
             if(holdRequestTokenForks[i] && !holdForks[i]){
                 //send request token to the philosopher with whom this is shared
-                MPI_Send(&VALUE_TRUE,1,MPI_INT,reachableNodes[i],REQUEST_TOKEN_TAG, MPI_COMM_WORLD);
+                MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i],REQUEST_TOKEN_TAG, MPI_COMM_WORLD);
                 output << "sending request token to process: " << reachableNodes[i] <<endl;
                 holdRequestTokenForks[i] = false;
                 sendHappened = true;
@@ -172,9 +185,7 @@ bool rule2(){
             if(holdRequestTokenForks[i] && dirtyForks[i]){
                 //send fork f to the philosopher with whom fork f is shared
                 output << "process: " << id << " sending fork to process: " << reachableNodes[i]<<endl; 
-                //set the boolean of having fork to false and dirty to false
-                MPI_Send(&VALUE_TRUE,1,MPI_INT,reachableNodes[i], FORK_TAG, MPI_COMM_WORLD);
-                MPI_Send(&VALUE_FALSE,1,MPI_INT,reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD);
+                MPI_Send(&randomNumber,1,MPI_INT,reachableNodes[i], FORK_TAG, MPI_COMM_WORLD);
                 dirtyForks[i] = false;
                 holdForks[i] = false;
                 sendHappened = true;
@@ -183,23 +194,5 @@ bool rule2(){
     }
     return sendHappened;
 }
-void rule3(){
-    output << "process: "<< id << " is wating to receive request token" << endl;
-    for(int i=0; i < reachableNodes.size(); i++){ 
-        if(!holdRequestTokenForks[i])
-            MPI_Irecv(&holdRequestTokenForks[i], 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD, &request);
 
-    }
-}
-void rule4(){
-    output << "process: "<< id << " is wating to receive forks" <<endl;
-    for (int i=0; i < reachableNodes.size(); i++){
-        if(!holdForks[i]){
-            MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &request);
-
-            MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &request);
-        
-        }
-    }
-}
 

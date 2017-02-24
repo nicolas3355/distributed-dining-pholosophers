@@ -76,7 +76,7 @@ void Graph::checkUndirectedGraph(){
     for (int i=0;i<vertexCount;i++){
         for(int j=0;j<vertexCount;j++){
             if(adjacencyMatrix[i][j] != adjacencyMatrix[j][i]){
-                std::cout << "please use a directed graph" << std::endl;
+                std::cout << "please use an undirected graph" << std::endl;
                 std::cout << "directed graph spotted , quitting ..." << std::endl;
                 exit(0);
             }

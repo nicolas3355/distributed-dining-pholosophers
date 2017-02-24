@@ -4,4 +4,4 @@ compile:
 
 .PHONY: run
 run:
-	mpirun -np 2 out 
+	mpirun -np 3 out 
