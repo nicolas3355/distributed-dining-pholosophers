@@ -4,8 +4,8 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "main.hpp"
-#include "Graph.cpp"
-
+#include "Graph.hpp"
+#include <fstream>
 using namespace std;
 
 
@@ -20,9 +20,9 @@ int const VALUE_FALSE = 1;
 
 int randomNumber = 1;
 
-enum state { eating, thinking, hungry };
+enum state { initValue, eating, thinking, hungry };
 
-state currentState = thinking;
+state currentState = initValue;
 
 int id;
 int totalNodes;
@@ -33,9 +33,9 @@ vector<int> reachableNodes;
 bool* holdForks;
 bool* dirtyForks;
 bool* holdRequestTokenForks;
-
-MPI_Request rule3Request;
-MPI_Request rule4Request;
+ofstream output;
+MPI_Request request;
+MPI_Status status;
 
 int main(int argc, char ** argv)
 {
@@ -51,7 +51,6 @@ int main(int argc, char ** argv)
     }
     reachableNodes = graph.getConnectedNodes(id);
     initializeForksAndRequests();
-    //the first time you start you are bound to get hungry
     rules();
     MPI_Finalize();
 }
@@ -64,30 +63,81 @@ void startGettingHungry(){
     random = rand() % 10 + 1;
     //cout << "random value " << random <<endl;
 
-    if(random < 6) { currentState = hungry; cout << "hungry philosopher at node: " << id << endl; }
-    else cout << "thinking philosopher at node: " << id << endl;
+    if(random < 5) { currentState = hungry; cout << "hungry philosopher at node: " << id << endl; }
+    else currentState = thinking;
 }
+//get hungry after 10 ms after your last meal
 void rules(){
-    bool firstTime = true;
 	while(1){
-
-        //random hungry
-        if(!firstTime) startGettingHungry(); 
-        else firstTime = false;
-
+        simulateHungryCycle();
         if(rule1() || rule2()){
-            //cout << "process: "<< id << " satisfies rule 1 or rule 2" <<endl;
+            output << "process: "<< id << " satisfies rule 1 or rule 2" <<endl;
             continue;
         }
         rule3();
         rule4();		
-        //if i am in this state
-        bool allForksClean = true;
+<<<<<<< HEAD
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
+    }
+}
+//returns random number between 1 and 10
+int getRandomNumber(){
+    int random;
+    //making every seed unique from a process to another using id
+    srand (time(NULL) + id+2);
+    random = rand() % 10 + 1;
+    //cout << "random value " << random <<endl;
+    return random;
+}
+void simulateHungryCycle(){
+    //thinking
+    if(currentState == initValue){
+        currentState = thinking;
+    } else if(currentState == thinking){
+        getHungry();
+    } else if (currentState == eating){
+        think();
+    } else if ( currentState == hungry ){
+        eat();
+    }
+}
+void think(){
+    currentState = thinking;
+    output << "philosopher at node " << id << " is thinking" << endl;
+    usleep(getRandomNumber()*100);
+    
+}
+void getHungry(){
+    currentState = hungry;
+    output << "philosopher at node " << id << " is hungry" << endl;
+}
+void eat(){
+    if (canEat()){
+        currentState = eating;
+        output << "philosopher at node " << id << " is eating" << endl;
+        usleep(getRandomNumber()*100);
         for(int i=0; i < reachableNodes.size(); i++){
-            //check that all forks are clean
-            if(dirtyForks[i]) allForksClean = false;
+            dirtyForks[i] = true;
         }
-        if(allForksClean){
+    }
+}
+
+bool canEat(){
+    bool haveAllForks = true;
+    for(int i=0; i < reachableNodes.size(); i++){
+        //check that all forks are clean
+        if(!holdForks[i]) haveAllForks = false;
+    }
+    return haveAllForks;
+
+=======
+        //if i am in this state
+        //bool allForksClean = true;
+        //for(int i=0; i < reachableNodes.size(); i++){
+        //    //check that all forks are clean
+        //    if(dirtyForks[i]) allForksClean = false;
+        //}
+        //if(allForksClean){
             currentState = eating;
             cout << "philosopher at node " << id << " is eating" << endl;
             sleep(1);
@@ -96,9 +146,11 @@ void rules(){
             }
             currentState = thinking;
             cout << "philosopher at node " << id << " is thinking" << endl;
-        }
+        //}
 	}
+>>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
 }
+
 
 void initializeForksAndRequests(){
 
@@ -106,6 +158,8 @@ void initializeForksAndRequests(){
     dirtyForks = new bool [size];
     holdForks = new bool [size];
     holdRequestTokenForks = new bool [size];
+
+
     for(int i =0 ;i< reachableNodes.size();i++){
         dirtyForks[i] = true;
         if(id > reachableNodes[i]){ 
@@ -118,7 +172,8 @@ void initializeForksAndRequests(){
             holdRequestTokenForks[i] = true;
         }
     }
-
+    string fileName = to_string(id)+"_log.txt";
+    output.open(fileName.c_str());
 }
 
 
@@ -133,7 +188,7 @@ bool rule1(){
             if(holdRequestTokenForks[i] && !holdForks[i]){
                 //send request token to the philosopher with whom this is shared
                 MPI_Send(&VALUE_TRUE,1,MPI_INT,reachableNodes[i],REQUEST_TOKEN_TAG, MPI_COMM_WORLD);
-                //cout << "sending request token to process: " << reachableNodes[i] <<endl;
+                output << "sending request token to process: " << reachableNodes[i] <<endl;
                 holdRequestTokenForks[i] = false;
                 sendHappened = true;
             }
@@ -149,7 +204,7 @@ bool rule2(){
         for(int i=0;i<reachableNodes.size();i++){
             if(holdRequestTokenForks[i] && dirtyForks[i]){
                 //send fork f to the philosopher with whom fork f is shared
-                //cout << "process: " << id << " sending fork to process: " << reachableNodes[i]<<endl; 
+                output << "process: " << id << " sending fork to process: " << reachableNodes[i]<<endl; 
                 //set the boolean of having fork to false and dirty to false
                 MPI_Send(&VALUE_TRUE,1,MPI_INT,reachableNodes[i], FORK_TAG, MPI_COMM_WORLD);
                 MPI_Send(&VALUE_FALSE,1,MPI_INT,reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD);
@@ -162,27 +217,38 @@ bool rule2(){
     return sendHappened;
 }
 void rule3(){
-    //waiting to receive request token from f
-    //once that is received 
+    output << "process: "<< id << " is wating to receive request token" << endl;
     for(int i=0; i < reachableNodes.size(); i++){ 
+<<<<<<< HEAD
+        if(!holdRequestTokenForks[i])
+            MPI_Irecv(&holdRequestTokenForks[i], 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD, &request);
+=======
         //cout << "process: "<< id << " is wating in rule3 on fork: "<< reachableNodes[i]  <<endl;
         MPI_Irecv(&holdRequestTokenForks[i], 1, MPI_INT, reachableNodes[i], REQUEST_TOKEN_TAG, MPI_COMM_WORLD,
         &rule3Request);
         //received request token
-        holdRequestTokenForks[i] = true;
+        //holdRequestTokenForks[i] = true;
         //cout << "process: "<< id << " received token " << "from: "<< reachableNodes[i] << endl;
+>>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
     }
 }
 void rule4(){
-    //wait to receive a fork f
-    //cout << "process: "<< id << " is wating in rule4" <<endl;
+    output << "process: "<< id << " is wating to receive forks" <<endl;
     for (int i=0; i < reachableNodes.size(); i++){
-        MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &rule4Request);
-        MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &rule4Request);
+<<<<<<< HEAD
+        if(!holdForks[i]){
+            MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &request);
 
+            MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &request);
+        
+=======
+            MPI_Irecv(&holdForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG, MPI_COMM_WORLD, &rule4Request);
+            MPI_Irecv(&dirtyForks[i], 1, MPI_INT, reachableNodes[i], FORK_TAG_DIRTY, MPI_COMM_WORLD, &rule4Request);
+>>>>>>> d969ea06e120ee7cd75e520a0373134281907d9a
         //those two values are filled asynchronously
         //holdForks[i] = true;
         //dirtyForks[i] = false;
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 #include "Graph.hpp"
+#include <iostream>
 #include <fstream>
 /***
     Graph representation using an adjacency matrix

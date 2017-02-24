@@ -1,7 +1,7 @@
 .PHONY: compile
 compile:
-	mpic++  main.cpp -o out
+	mpic++  main.cpp Graph.cpp -o out
 
 .PHONY: run
 run:
-	mpirun -np 3 out 
+	mpirun -np 2 out 
