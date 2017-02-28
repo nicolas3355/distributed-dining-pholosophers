@@ -60,12 +60,12 @@ int main(int argc, char ** argv)
 
 void rules(){
 	while(1){
-        simulateHungryCycle();
+        //simulateHungryCycle();
+        getHungry();
         if(rule1() || rule2()){
             output << "process: "<< id << " satisfies rule 1 or rule 2" <<endl;
             continue;
         }
-        if(currentState == eating) continue;
 
         MPI_Recv( &randomNumber, 1 ,MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD , &status);
         int senderIndex = getSenderIndex(status.MPI_SOURCE);
@@ -74,6 +74,10 @@ void rules(){
         } else if (status.MPI_TAG == FORK_TAG){
             holdForks[senderIndex] = true;
             dirtyForks[senderIndex] = false;
+            output << "process " << id << " received the fork" << endl;
+        }
+        if(canEat()) {
+                eat();
         }
 
     }
@@ -96,19 +100,13 @@ void simulateHungryCycle(){
     if(currentState == initValue){
         currentState = thinking;
         output << "philosopher at node " << id << " is thinking" << endl;
-
-    } else if(currentState == thinking){
-        getHungry();
-    } else if (currentState == eating){
-        think();
-    } else if ( currentState == hungry ){
-        eat();
     }
 }
 void think(){
     currentState = thinking;
     output << "philosopher at node " << id << " is thinking" << endl;
     usleep(getRandomNumber()*waitMilli);
+    getHungry();
     
 }
 void getHungry(){
@@ -123,6 +121,7 @@ void eat(){
         for(int i=0; i < reachableNodes.size(); i++){
             dirtyForks[i] = true;
         }
+        think();
     }
 }
 
